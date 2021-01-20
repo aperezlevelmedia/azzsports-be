@@ -51,7 +51,7 @@ class JsonController extends ApiController{
 
         
     }
-    public function store()
+    public function store(Request $request)
     {
         $oddsUrl = env('ODDS_XML');
         $odd_directory = env('ODDS_DIRECTORY');

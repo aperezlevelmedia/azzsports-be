@@ -19,6 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::resource('json','App\Http\Controllers\JsonController');
+Route::resource('jsonScore','App\Http\Controllers\JsonScoreController');
 Route::get('json/show/tabNames','App\Http\Controllers\JsonController@tabNames');
 Route::get('json/show/league','App\Http\Controllers\JsonController@league');
 Route::get('json/show/leagueTable','App\Http\Controllers\JsonController@leagueTable');
