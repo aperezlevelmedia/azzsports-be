@@ -60,10 +60,13 @@ class JsonScoreController extends ApiController{
     {
         $eventViewUrl = env('BETSAPI_EVENT_VIEW');
         $eventViewResponse = Http::get($eventViewUrl.'?token='.$token.'&event_id='.$event_id)->json();
-        $extraResponse = '';
+        $extraResponse = array();
         if (array_key_exists("extra",$eventViewResponse['results'][0]))
         {
         $extraResponse = $eventViewResponse['results'][0]['extra'];
+        }
+        else{
+            $extraResponse['stadium_data']='';
         }
         return $extraResponse;
     }
