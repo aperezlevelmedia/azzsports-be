@@ -19,7 +19,7 @@ use File;
  */
 class JsonScoreController extends ApiController{
     public function store(Request $request)
-    {       
+    {              
         $token = $request['token'];
         $sport_id = $request['sport_id'];
         $league_id = $request['league_id'];
@@ -44,17 +44,26 @@ class JsonScoreController extends ApiController{
         $mergedResponse = array_merge($eventUpcommingResponse['results'],$eventInplayResponse['results']);        
         $mergedResponse = array_merge($mergedResponse, $eventEndedResponse['results']);
         
+        foreach ($mergedResponse as $position=>$event) {
+            $extra = $this->getExtraEventData($event['id'],$token);
+            $mergedResponse[$position]['stadium_data'] = $extra['stadium_data'] ;
+            
+        }
+        
         Storage::disk('public')->put('SCORES/'.$leagues[$league_id].'/'.$day.'.json', json_encode($mergedResponse));
                      
         
-        /*$xml = simplexml_load_string($response);
-        $ugly_json = json_decode(json_encode($xml));
-        $nice_json = $this->cleanupJson($ugly_json);
-        $newJson = json_encode($nice_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        $array = json_decode($newJson,TRUE);
-        $finalArray = null;*/
         return response()->json(['data'=>$leagues, 'success'=>'Json files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
     }
+    
+    public function getExtraEventData($event_id,$token)
+    {
+        $eventViewUrl = env('BETSAPI_EVENT_VIEW');
+        $eventViewResponse = Http::get($eventViewUrl.'?token='.$token.'&event_id='.$event_id)->json();
+        $extraResponse = $eventViewResponse['results'][0]['extra'];
+        return $extraResponse;
+    }
+    
     public function index(Request $request)
     {
         $league_id = $request->league_id;
