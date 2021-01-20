@@ -53,14 +53,18 @@ class JsonScoreController extends ApiController{
         Storage::disk('public')->put('SCORES/'.$leagues[$league_id].'/'.$day.'.json', json_encode($mergedResponse));
                      
         
-        return response()->json(['data'=>$leagues, 'success'=>'Json files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
+        return response()->json(['success'=>'Json files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
     }
     
     public function getExtraEventData($event_id,$token)
     {
         $eventViewUrl = env('BETSAPI_EVENT_VIEW');
         $eventViewResponse = Http::get($eventViewUrl.'?token='.$token.'&event_id='.$event_id)->json();
+        $extraResponse = '';
+        if (array_key_exists("extra",$eventViewResponse['results'][0]))
+        {
         $extraResponse = $eventViewResponse['results'][0]['extra'];
+        }
         return $extraResponse;
     }
     
