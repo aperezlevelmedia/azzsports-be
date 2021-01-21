@@ -11,6 +11,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Pagination\LengthAwarePaginator;
 use File;
 /**
  * Description of JsonScoreController
@@ -56,8 +57,71 @@ class JsonScoreController extends ApiController{
         return response()->json(['success'=>'Json files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
     }
     
-    public function getExtraEventData($event_id,$token)
+    public function ScoreAllLeagues(Request $request)
+    {              
+        $token = $request['token'];
+        $sport_id = $request['sport_id'];        
+        $day = $request['day'];
+        
+        $eventEndedUrl = env('BETSAPI_ENDED');
+        $eventUpcommingUrl = env('BETSAPI_UPCOMMING');
+        $eventInplayUrl = env('BETSAPI_INPLAY');
+        
+        $score_directory = env('SCORE_DIRECTORY');
+        
+        $urlParameter = '?token='.$token.'&sport_id='.$sport_id.'&day='.$day;
+        $urlInplayParameter = '?token='.$token.'&sport_id='.$sport_id;
+        $sports = env('SPORTS');
+        $sports = json_decode($sports,true);
+        
+        $eventUpcommingResponse = Http::get($eventUpcommingUrl.$urlParameter)->json();
+        $eventInplayResponse = Http::get($eventInplayUrl.$urlInplayParameter)->json();
+        $eventEndedResponse = Http::get($eventEndedUrl.$urlParameter)->json();
+        
+        $mergedResponse = array();
+        $mergedResponse = array_merge($eventUpcommingResponse['results'],$eventInplayResponse['results']);        
+        $mergedResponse = array_merge($mergedResponse, $eventEndedResponse['results']);
+        
+        foreach ($mergedResponse as $position=>$event) {
+            $extra = $this->getExtraEventData($event['id'],$token);
+            $mergedResponse[$position]['stadium_data'] = $extra['stadium_data'] ;
+            
+        }
+        $groupedByLeague = $this->groupArray($mergedResponse);
+        Storage::disk('public')->put('ALL_LEAGUE_SCORES/'.$sports[$sport_id].'/'.$day.'.json', json_encode($groupedByLeague));
+                     
+        
+        return response()->json(['success'=>'Json files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
+    }
+    
+    public function getScoreAllLeagues(Request $request)
     {
+        $pagination = $request->per_page;
+        $currentPage = $request->page;
+        $league_id = $request->sport_id;
+        $day = $request->day;
+        $sports = json_decode(env('SPORTS'),true);
+        $allLeafueScoreDirectory = env('ALL_LEAGUES_SCORE_DIRECTORY');
+        
+        //echo storage_path() .$allLeafueScoreDirectory.$sports[$league_id].'/'.$day.".json";
+        $file = File::get(storage_path() .$allLeafueScoreDirectory.$sports[$league_id].'/'.$day.".json");
+        $leagueArray = json_decode($file,TRUE);
+        //return response()->json(['success'=>true, 'data'=>$leagueArray, 'status_code' => 200, 'state' => true], 200);   
+        
+        $offset = ($currentPage * $pagination) - $pagination;
+        return $this->responsePaginate(new LengthAwarePaginator(
+            array_slice($leagueArray, $offset, $pagination, false), // Only grab the items we need
+            count($leagueArray), // Total items
+            $pagination, // Items per page
+            $currentPage, // Current page
+            ['path' => $request->url(), 'query' => $request->query()] // We need this so we can keep all old query parameters from the url
+            ));
+        
+        
+    }
+    
+    public function getExtraEventData($event_id,$token)
+    {        
         $eventViewUrl = env('BETSAPI_EVENT_VIEW');
         $eventViewResponse = Http::get($eventViewUrl.'?token='.$token.'&event_id='.$event_id)->json();
         $extraResponse = array();
@@ -68,6 +132,11 @@ class JsonScoreController extends ApiController{
         else{
             $extraResponse['stadium_data']='';
         }
+        if (!array_key_exists("stadium_data",$extraResponse))
+        {
+            $extraResponse['stadium_data']='';
+        }
+        
         return $extraResponse;
     }
     
@@ -81,9 +150,59 @@ class JsonScoreController extends ApiController{
             
             $file = File::get(storage_path() .$score_directory.$leagues[$league_id].'/'.$day.".json");
             $leagueArray = json_decode($file,TRUE);
-            return response()->json(['success'=>true, 'data'=>$leagueArray, 'status_code' => 200, 'state' => true], 200);
-        
-
+            return response()->json(['success'=>true, 'data'=>$leagueArray, 'status_code' => 200, 'state' => true], 200);        
         
     }
-}
+    
+    function groupArray($array)
+    {
+        $groupkey = 'league';
+        $score_directory = env('SCORE_DIRECTORY');
+        /*$array = array(array('name'=>'Juan','color'=>'Azul','edad'=>24),array('name'=>'Juan','color'=>'Rojo','edad'=>24),
+            array('name'=>'Juan','color'=>'Verde','edad'=>25),array('name'=>'Pablo','color'=>'Azul','edad'=>25),array('name'=>'Pablo','color'=>'Amarillo','edad'=>25));*/
+        
+        /*$file = File::get(storage_path() .$score_directory.'Basketball/'.'20210120'.".json");
+            $array = json_decode($file,TRUE);*/
+        
+     if (count($array)>0)
+     {
+            $keys = array_keys($array[0]['league']);
+            $mainKeys = array_keys($array[0]);
+            $removekey = array_search('id', $keys);		
+            if ($removekey===false)
+                    return array("Clave \"$groupkey\" no existe");            
+            $groupcriteria = array();
+            $return=array();
+            foreach($array as $value)
+            {
+                    $item=null;
+                    foreach ($mainKeys as $key)
+                    {
+                        if($key === 'bet365_id')
+                        {
+                            if (array_key_exists($key,$value))
+                            {
+                                $item[$key] = $value[$key];
+                            }
+                        }
+                        else{
+                            $item[$key] = $value[$key];
+                        }
+                            
+                    }
+                    $busca = array_search($value[$groupkey]['id'], $groupcriteria);
+                    if ($busca === false)
+                    {
+                            $groupcriteria[]=$value[$groupkey]['id'];
+                            $return[]=array($groupkey=>$value[$groupkey],'results'=>array());
+                            $busca=count($return)-1;
+                    }
+                    $return[$busca]['results'][]=$item;
+            }
+            return $return;
+        }
+        else
+               return array();
+       }
+
+    }
