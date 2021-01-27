@@ -20,6 +20,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 Route::resource('json','App\Http\Controllers\JsonController');
 Route::resource('jsonScore','App\Http\Controllers\JsonScoreController');
+Route::resource('jsonStanding','App\Http\Controllers\JsonStandingController');
 Route::get('jsonScore/show/groupArray','App\Http\Controllers\JsonScoreController@groupArray');
 Route::post('jsonScore/create/allLeagueScores','App\Http\Controllers\JsonScoreController@ScoreAllLeagues');
 Route::get('jsonScore/show/allLeagueScores','App\Http\Controllers\JsonScoreController@getScoreAllLeagues');
