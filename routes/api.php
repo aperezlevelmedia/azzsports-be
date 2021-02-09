@@ -26,4 +26,6 @@ Route::post('jsonScore/create/allLeagueScores','App\Http\Controllers\JsonScoreCo
 Route::get('jsonScore/show/allLeagueScores','App\Http\Controllers\JsonScoreController@getScoreAllLeagues');
 Route::get('json/show/tabNames','App\Http\Controllers\JsonController@tabNames');
 Route::get('json/show/league','App\Http\Controllers\JsonController@league');
-Route::get('json/show/leagueTable','App\Http\Controllers\JsonController@leagueTable');
+Route::get('json/show/leagueTable','App\Http\Controllers\JsonStandingController@leagueTable');
+Route::post('jsonStandingLeague/create','App\Http\Controllers\JsonStandingController@storeLeagueTableStore');
+

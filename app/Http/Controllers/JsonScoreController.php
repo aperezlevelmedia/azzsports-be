@@ -37,13 +37,11 @@ class JsonScoreController extends ApiController{
         
         $leagues = json_decode(env('LEAGUES'),true);
         
-        $eventUpcommingResponse = Http::get($eventUpcommingUrl.$urlParameter)->json();
         $eventInplayResponse = Http::get($eventInplayUrl.$urlInplayParameter)->json();
         $eventEndedResponse = Http::get($eventEndedUrl.$urlParameter)->json();
         
-        $mergedResponse = array();
-        $mergedResponse = array_merge($eventUpcommingResponse['results'],$eventInplayResponse['results']);        
-        $mergedResponse = array_merge($mergedResponse, $eventEndedResponse['results']);
+        $mergedResponse = array();     
+        $mergedResponse = array_merge($eventInplayResponse['results'], $eventEndedResponse['results']);
         
         foreach ($mergedResponse as $position=>$event) {
             $extra = $this->getExtraEventData($event['id'],$token);
@@ -73,14 +71,12 @@ class JsonScoreController extends ApiController{
         $urlInplayParameter = '?token='.$token.'&sport_id='.$sport_id;
         $sports = env('SPORTS');
         $sports = json_decode($sports,true);
-        
-        $eventUpcommingResponse = Http::get($eventUpcommingUrl.$urlParameter)->json();
+
         $eventInplayResponse = Http::get($eventInplayUrl.$urlInplayParameter)->json();
         $eventEndedResponse = Http::get($eventEndedUrl.$urlParameter)->json();
         
-        $mergedResponse = array();
-        $mergedResponse = array_merge($eventUpcommingResponse['results'],$eventInplayResponse['results']);        
-        $mergedResponse = array_merge($mergedResponse, $eventEndedResponse['results']);
+        $mergedResponse = array();       
+        $mergedResponse = array_merge($eventInplayResponse['results'], $eventEndedResponse['results']);
         
         foreach ($mergedResponse as $position=>$event) {
             $extra = $this->getExtraEventData($event['id'],$token);

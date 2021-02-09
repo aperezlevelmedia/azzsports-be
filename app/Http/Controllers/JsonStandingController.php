@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 use File;
 /**
  * Description of JsonStandingController
@@ -71,5 +72,25 @@ class JsonStandingController extends ApiController{
             ));
         
         
+    }
+
+    public function storeLeagueTableStore(Request $request)
+    {
+        $league_table_url = env('LEAGUE_TABLE');
+        $league_id = $request['league_id'];
+        $response = Http::get($league_table_url.$request['league_id'])->body();
+        $standingsResponse = json_decode($response,True);
+        $leagues = json_decode(env('LEAGUES'),true);
+        Storage::disk('public')->put('STANDINGS/'.$leagues[$league_id].'.json', json_encode($standingsResponse['results']));
+        return response()->json(['success'=>'Json files created!', 'message'=>'standing', 'status_code' => 200, 'state' => 'test'], 200);
+    }
+
+    public function leagueTable(Request $request)
+    {   
+        $leagues = json_decode(env('LEAGUES'),true);
+        $standingsDirectory = env('STANDING_DIRECTORY');
+        $file = File::get(storage_path() .$standingsDirectory.$leagues[$request->league_id].".json");
+        $leagueArray = json_decode($file,TRUE);
+        return response()->json(['success'=>true, 'data'=>$leagueArray, 'status_code' => 200, 'state' => true], 200);
     }
 }
