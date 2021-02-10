@@ -57,34 +57,39 @@ class JsonScoreController extends ApiController{
     
     public function ScoreAllLeagues(Request $request)
     {              
-        $token = $request['token'];
-        $sport_id = $request['sport_id'];        
-        $day = $request['day'];
-        
-        $eventEndedUrl = env('BETSAPI_ENDED');
-        $eventUpcommingUrl = env('BETSAPI_UPCOMMING');
+
+        $sport_id = $request['sport_id'];
+        $league_id = $request['league_id'];
+        $leagues = json_decode(env('LEAGUES'),true);
+
         $eventInplayUrl = env('BETSAPI_INPLAY');
         
         $score_directory = env('SCORE_DIRECTORY');
-        
-        $urlParameter = '?token='.$token.'&sport_id='.$sport_id.'&day='.$day;
-        $urlInplayParameter = '?token='.$token.'&sport_id='.$sport_id;
+        $token = env('TOKENBETAPI');
+        $urlInplayParameter = '?token='.$token.'&sport_id='.$sport_id.'&league_id='.$league_id;
         $sports = env('SPORTS');
         $sports = json_decode($sports,true);
 
         $eventInplayResponse = Http::get($eventInplayUrl.$urlInplayParameter)->json();
-        $eventEndedResponse = Http::get($eventEndedUrl.$urlParameter)->json();
-        
+
+        $page = 1;
+        $eventEnded = array();
+        //do {
+            $urlParameter = '?token='.$token.'&sport_id='.$sport_id.'&page='.$page.'&league_id='.$league_id;
+            $data = $this->getData($urlParameter);
+            $eventEnded = array_merge($eventEnded,$data);
+            //$page++;
+        //} while($page <= 2);
+
         $mergedResponse = array();       
-        $mergedResponse = array_merge($eventInplayResponse['results'], $eventEndedResponse['results']);
-        
-        foreach ($mergedResponse as $position=>$event) {
+        $mergedResponse = array_merge($eventInplayResponse['results'], $eventEnded);
+        /*foreach ($mergedResponse as $position=>$event) {
+            if($event['id']){
             $extra = $this->getExtraEventData($event['id'],$token);
             $mergedResponse[$position]['stadium_data'] = $extra['stadium_data'] ;
-            
-        }
-        $groupedByLeague = $this->groupArray($mergedResponse);
-        Storage::disk('public')->put('ALL_LEAGUE_SCORES/'.$sports[$sport_id].'/'.$day.'.json', json_encode($groupedByLeague));
+            }
+        }*/
+        Storage::disk('public')->put('ALL_LEAGUE_SCORES/'.$sports[$sport_id].'/'.$leagues[$league_id].'.json', json_encode($mergedResponse));
                      
         
         return response()->json(['success'=>'Json files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
@@ -94,13 +99,14 @@ class JsonScoreController extends ApiController{
     {
         $pagination = $request->per_page;
         $currentPage = $request->page;
-        $league_id = $request->sport_id;
-        $day = $request->day;
+        $sport_id = $request->sport_id;
+        $league_id = $request->league_id;
         $sports = json_decode(env('SPORTS'),true);
+        $leagues = json_decode(env('LEAGUES'),true);
         $allLeafueScoreDirectory = env('ALL_LEAGUES_SCORE_DIRECTORY');
         
-        //echo storage_path() .$allLeafueScoreDirectory.$sports[$league_id].'/'.$day.".json";
-        $file = File::get(storage_path() .$allLeafueScoreDirectory.$sports[$league_id].'/'.$day.".json");
+        //echo storage_path() .$allLeafueScoreDirectory.$sports[$sport_id].'/'.$leagues[$league_id].".json";
+        $file = File::get(storage_path() .$allLeafueScoreDirectory.$sports[$sport_id].'/'.$leagues[$league_id].".json");
         $leagueArray = json_decode($file,TRUE);
         //return response()->json(['success'=>true, 'data'=>$leagueArray, 'status_code' => 200, 'state' => true], 200);   
         
@@ -112,10 +118,8 @@ class JsonScoreController extends ApiController{
             $currentPage, // Current page
             ['path' => $request->url(), 'query' => $request->query()] // We need this so we can keep all old query parameters from the url
             ));
-        
-        
     }
-    
+
     public function getExtraEventData($event_id,$token)
     {        
         $eventViewUrl = env('BETSAPI_EVENT_VIEW');
@@ -200,5 +204,11 @@ class JsonScoreController extends ApiController{
         else
                return array();
        }
+    function getData($urlParameter){
+        $eventEndedUrl = env('BETSAPI_ENDED');
+        $eventEndedResponse = Http::get($eventEndedUrl.$urlParameter)->json();
+        $data = $eventEndedResponse['results'];
+        return $data; //return the results for use
+        }
 
     }
