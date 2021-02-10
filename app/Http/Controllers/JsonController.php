@@ -73,7 +73,7 @@ class JsonController extends ApiController{
         Storage::disk('public')->put('ODDS/LEAGUES/'.'leagues.json', json_encode($finalLeagueList));
         
         foreach($finalLeagueList as $singleLeague)
-        {   $enabledLeagues = [389,784,272,3,564,7];
+        {   $enabledLeagues = [389,784,272,3,564,7,725,58];
             if(in_array($singleLeague['id'], $enabledLeagues))
             {
                 $response = Http::post($oddsUrl, [
@@ -116,6 +116,10 @@ class JsonController extends ApiController{
                 break;
             case 'ODDS TO WIN NCAA FOOTBALL CHAMPIONSHIP':
                 $convertedName = 'NCAAF';
+            case 'UEFA - CHAMPIONS LEAGUE':
+                $convertedName = 'UEFACL';
+            case 'UFC / MMA':
+                $convertedName = 'UEFCMMA';
                 break;
         }
         return $convertedName;
