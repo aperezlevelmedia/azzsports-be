@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 use File;
 /**
  * Description of JsonScoreController
@@ -83,16 +84,14 @@ class JsonScoreController extends ApiController{
 
         $mergedResponse = array();       
         $mergedResponse = array_merge($eventInplayResponse['results'], $eventEnded);
-        /*foreach ($mergedResponse as $position=>$event) {
+        foreach ($mergedResponse as $position=>$event) {
             if($event['id']){
             $extra = $this->getExtraEventData($event['id'],$token);
-            $mergedResponse[$position]['stadium_data'] = $extra['stadium_data'] ;
+            $mergedResponse[$position]['scores'] = $extra['scores'] ;
             }
-        }*/
+        }
         Storage::disk('public')->put('ALL_LEAGUE_SCORES/'.$sports[$sport_id].'/'.$leagues[$league_id].'.json', json_encode($mergedResponse));
-                     
-        
-        return response()->json(['success'=>'Json files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
+        return response()->json(['success'=>'Json files created!', 'message'=>'scores', 'status_code' => 200, 'state' => 'done'], 200);
     }
     
     public function getScoreAllLeagues(Request $request)
@@ -125,16 +124,16 @@ class JsonScoreController extends ApiController{
         $eventViewUrl = env('BETSAPI_EVENT_VIEW');
         $eventViewResponse = Http::get($eventViewUrl.'?token='.$token.'&event_id='.$event_id)->json();
         $extraResponse = array();
-        if (array_key_exists("extra",$eventViewResponse['results'][0]))
+        if (array_key_exists("scores",$eventViewResponse['results'][0]))
         {
-        $extraResponse = $eventViewResponse['results'][0]['extra'];
+        $extraResponse['scores'] = $eventViewResponse['results'][0]['scores'];
         }
         else{
-            $extraResponse['stadium_data']='';
+            $extraResponse['scores']='';
         }
-        if (!array_key_exists("stadium_data",$extraResponse))
+        if (!array_key_exists("scores",$extraResponse))
         {
-            $extraResponse['stadium_data']='';
+            $extraResponse['scores']='';
         }
         
         return $extraResponse;
