@@ -73,7 +73,7 @@ class JsonController extends ApiController{
         Storage::disk('public')->put('ODDS/LEAGUES/'.'leagues.json', json_encode($finalLeagueList));
         
         foreach($finalLeagueList as $singleLeague)
-        {   $enabledLeagues = [389,784,272,3,564,7,725,58,60,334];
+        {   $enabledLeagues = [389,784,272,3,564,7,725,58,60,334,505];
             if(in_array($singleLeague['id'], $enabledLeagues))
             {
                 $response = Http::post($oddsUrl, [
@@ -128,6 +128,9 @@ class JsonController extends ApiController{
                 break;
             case 'GERMANY- BUNDESLIGA':
                 $convertedName = 'GERMANYBUNDESLIGA';
+                break;
+            case 'ATP TENNIS - SPREAD IS FOR SETS':
+                $convertedName = 'ATPTENNISSPREADISFORSETS';
                 break;
         }
         return $convertedName;

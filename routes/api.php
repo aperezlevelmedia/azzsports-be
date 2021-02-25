@@ -28,4 +28,6 @@ Route::get('json/show/tabNames','App\Http\Controllers\JsonController@tabNames');
 Route::get('json/show/league','App\Http\Controllers\JsonController@league');
 Route::get('json/show/leagueTable','App\Http\Controllers\JsonStandingController@leagueTable');
 Route::post('jsonStandingLeague/create','App\Http\Controllers\JsonStandingController@storeLeagueTableStore');
+Route::post('jsonUpcoming/create','App\Http\Controllers\JsonScoreController@storeUpcoming');
+Route::get('jsonUpcoming/show','App\Http\Controllers\JsonScoreController@getUpcomingEvent');
 

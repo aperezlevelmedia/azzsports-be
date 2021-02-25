@@ -93,7 +93,53 @@ class JsonScoreController extends ApiController{
         Storage::disk('public')->put('ALL_LEAGUE_SCORES/'.$sports[$sport_id].'/'.$leagues[$league_id].'.json', json_encode($mergedResponse));
         return response()->json(['success'=>'Json files created!', 'message'=>'scores', 'status_code' => 200, 'state' => 'done'], 200);
     }
-    
+    public function storeUpcoming(Request $request)
+    {              
+        $sport_id = $request['sport_id'];
+        $league_id = $request['league_id'];
+        $token = env('TOKENBETAPI');
+        $eventUpcommingUrl = env('BETSAPI_UPCOMMING');
+        
+        $urlParameter = '?token='.$token.'&sport_id='.$sport_id.'&league_id='.$league_id;
+        
+        $leagues = json_decode(env('LEAGUES'),true);
+
+        $eventUpcommingResponse = Http::get($eventUpcommingUrl.$urlParameter)->json();
+        
+        $mergedResponse = array();     
+        $mergedResponse = $eventUpcommingResponse['results'];
+
+        Storage::disk('public')->put('UPCOMMING/'.$leagues[$league_id].'.json', json_encode($mergedResponse));
+                     
+        
+        return response()->json(['success'=>'Json upcoming files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
+    }
+
+    public function getUpcomingEvent(Request $request)
+    {
+        $pagination = $request->per_page;
+        $currentPage = $request->page;
+        $sport_id = $request->sport_id;
+        $league_id = $request->league_id;
+        $sports = json_decode(env('SPORTS'),true);
+        $leagues = json_decode(env('LEAGUES'),true);
+        $upcomingDirectory = env('UPCOMING_DIRECTORY');
+        
+        //echo storage_path() .$allLeafueScoreDirectory.$sports[$sport_id].'/'.$leagues[$league_id].".json";
+        $file = File::get(storage_path() .$upcomingDirectory.$leagues[$league_id].".json");
+        $leagueArray = json_decode($file,TRUE);
+        //return response()->json(['success'=>true, 'data'=>$leagueArray, 'status_code' => 200, 'state' => true], 200);   
+        
+        $offset = ($currentPage * $pagination) - $pagination;
+        return $this->responsePaginate(new LengthAwarePaginator(
+            array_slice($leagueArray, $offset, $pagination, false), // Only grab the items we need
+            count($leagueArray), // Total items
+            $pagination, // Items per page
+            $currentPage, // Current page
+            ['path' => $request->url(), 'query' => $request->query()] // We need this so we can keep all old query parameters from the url
+            ));
+    }
+
     public function getScoreAllLeagues(Request $request)
     {
         $pagination = $request->per_page;
