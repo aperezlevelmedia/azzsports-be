@@ -109,7 +109,7 @@ class JsonScoreController extends ApiController{
         $mergedResponse = array();     
         $mergedResponse = $eventUpcommingResponse['results'];
 
-        Storage::disk('public')->put('UPCOMMING/'.$leagues[$league_id].'.json', json_encode($mergedResponse));
+        Storage::disk('public')->put('UPCOMING/'.$leagues[$league_id].'.json', json_encode($mergedResponse));
                      
         
         return response()->json(['success'=>'Json upcoming files created!', 'message'=>'test', 'status_code' => 200, 'state' => 'test'], 200);
