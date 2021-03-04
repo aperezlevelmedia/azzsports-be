@@ -140,6 +140,14 @@ class JsonScoreController extends ApiController{
             ));
     }
 
+    public function getEnableLeagues(Request $request)
+    {
+        $upcomingDirectory = env('UPCOMING_DIRECTORY');
+            $file = File::get(storage_path() .$upcomingDirectory."ENABLELEAGUE.json");
+            $leagueArray = json_decode($file,TRUE);
+        return response()->json(['success'=>true, 'data'=>$leagueArray, 'status_code' => 200, 'state' => true], 200);
+    }
+
     public function getScoreAllLeagues(Request $request)
     {
         $pagination = $request->per_page;

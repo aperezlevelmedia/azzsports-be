@@ -30,4 +30,5 @@ Route::get('json/show/leagueTable','App\Http\Controllers\JsonStandingController@
 Route::post('jsonStandingLeague/create','App\Http\Controllers\JsonStandingController@storeLeagueTableStore');
 Route::post('jsonUpcoming/create','App\Http\Controllers\JsonScoreController@storeUpcoming');
 Route::get('jsonUpcoming/show','App\Http\Controllers\JsonScoreController@getUpcomingEvent');
+Route::get('jsonUpcoming/enableLeague','App\Http\Controllers\JsonScoreController@getEnableLeagues');
 
