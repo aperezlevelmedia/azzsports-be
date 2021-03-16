@@ -1,5 +1,5 @@
 <?php
-$urlScores = 'http://127.0.0.1:8000/api/jsonScore/create/allLeagueScores';
+$urlScores = 'https://bettings-dev.oddsandnews.com/api/jsonScore/create/allLeagueScores';
 
 //Request scores NBA
 $sportIdB = 18;
